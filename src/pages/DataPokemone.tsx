@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PokemonCard from './CardPokemone'; // Asegúrate de tener este componente para mostrar la info
-import './styles/Home.css';
-import './styles/Modal.css';
-
+import '../styles/Home.css';
+import '../styles/Modal.css';
 
 interface Pokemon {
   id: number;
   name: string;
   image: string;
+  height: number; // Altura del Pokémon
+  weight: number; // Peso del Pokémon
   types: Array<{ type: { name: string } }>;
   abilities: Array<{ ability: { name: string } }>;
+  moves: Array<{ move: { name: string } }>; // Movimientos del Pokémon
 }
+
 
 interface PokemonCardProps {
   id: number;
@@ -36,37 +39,40 @@ const Home: React.FC = () => {
   const [selectedGeneration, setSelectedGeneration] = useState<string>('Primera');
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null); // Nuevo estado para el Pokémon seleccionado
 
-  useEffect(() => {
-    const generation = generations.find(gen => gen.gen === selectedGeneration);
-    if (!generation) return;
+ // ... resto del código ...
 
-    axios.get(`https://pokeapi.co/api/v2/pokemon?offset=${generation.offset}&limit=${generation.limit}`)
-      .then(response => {
-        const fetches = response.data.results.map((pokemon: { name: string }) => {
-          const imageUrl = `https://img.pokemondb.net/sprites/omega-ruby-alpha-sapphire/dex/normal/${pokemon.name}.png`;
-          return axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
-            .then(pokemonResponse => {
-              return {
-                ...pokemonResponse.data,
-                image: imageUrl
-              };
-            });
-        });
-        return Promise.all(fetches);
-      })
-      .then(pokemonData => {
-        setPokemons(pokemonData);
-      })
-      .catch(error => {
-        console.error("Error fetching data: ", error);
+useEffect(() => {
+  const generation = generations.find(gen => gen.gen === selectedGeneration);
+  if (!generation) return;
+
+  axios.get(`https://pokeapi.co/api/v2/pokemon?offset=${generation.offset}&limit=${generation.limit}`)
+    .then(response => {
+      const fetches = response.data.results.map((pokemon: { name: string }) => {
+        return axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
+          .then(pokemonResponse => {
+            // Asumiendo que la respuesta tiene todos los campos necesarios
+            const { id, name, height, weight, types, abilities, moves, sprites } = pokemonResponse.data;
+            const image = sprites.front_default || `https://img.pokemondb.net/sprites/omega-ruby-alpha-sapphire/dex/normal/${name}.png`;
+            return { id, name, image, height, weight, types, abilities, moves };
+          });
       });
-  }, [selectedGeneration]);
+      return Promise.all(fetches);
+    })
+    .then(pokemonData => {
+      setPokemons(pokemonData);
+    })
+    .catch(error => {
+      console.error("Error fetching data: ", error);
+    });
+}, [selectedGeneration]);
+
+// ... resto del código ...
+
 
   // Función para abrir el modal y establecer el Pokémon seleccionado
   const handlePokemonClick = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
   };
-
 
   const handleCloseModal = () => {
     setSelectedPokemon(null);
@@ -95,31 +101,27 @@ const Home: React.FC = () => {
       ))}
       {/* Modal */}
       {selectedPokemon && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={handleCloseModal}>&times;</span> {/* Botón para cerrar el modal */}
-            <h2>{selectedPokemon.name}</h2>
-            <img src={selectedPokemon.image} alt={selectedPokemon.name} />
-            {/* Mostrar tipos y habilidades del Pokémon */}
-            <div>
-              <h3>Tipos:</h3>
-              <ul>
-                {selectedPokemon.types.map((type, index) => (
-                  <li key={index}>{type.type.name}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3>Habilidades:</h3>
-              <ul>
-                {selectedPokemon.abilities.map((ability, index) => (
-                  <li key={index}>{ability.ability.name}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="modal">
+    <div className="modal-content">
+      <span className="close" onClick={handleCloseModal}>&times;</span>
+      <h2>{selectedPokemon.name}</h2>
+      <img src={selectedPokemon.image} alt={selectedPokemon.name} />
+      <p>Número: {selectedPokemon.id}</p>
+      <p>Altura: {selectedPokemon.height}</p>
+      <p>Peso: {selectedPokemon.weight}</p>
+      <p>Tipos: {selectedPokemon.types.map(type => type.type.name).join(', ')}</p>
+      <p>Habilidades: {selectedPokemon.abilities.map(ability => ability.ability.name).join(', ')}</p>
+      <div>
+        <h3>Movimientos:</h3>
+        <ul>
+          {selectedPokemon.moves.map((move, index) => (
+            <li key={index}>{move.move.name}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

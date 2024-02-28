@@ -1,6 +1,5 @@
 import React from 'react';
-import './styles/PokemonCard.css';
-
+import '../styles/PokemonCard.css';
 
 interface PokemonCardProps {
   id: number;
@@ -11,11 +10,9 @@ interface PokemonCardProps {
   onClick?: () => void; // La propiedad onClick es opcional
 }
 
-
-
-const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, image, types, abilities }) => {
+const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, image, types, abilities, onClick }) => {
   return (
-    <div className="pokemon-card">
+    <div className="pokemon-card" onClick={onClick}> {/* Asegúrate de agregar el manejo del evento onClick aquí */}
       <img src={image} alt={name} />
       <h2 className="pokemon-name">{name}</h2>
       <div className="pokemon-types">
