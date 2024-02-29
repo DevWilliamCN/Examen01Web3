@@ -5,11 +5,10 @@ import '../styles/index.css';
 
 const NavBar = () => {
   return (
-      <div className="container"> {/* Utiliza un contenedor para mejor control del layout */}
-        <Link className="navbar-brand" to="/"> {/* Posiciona el logo a la izquierda */}
-          <img src={logo} alt="Logo Pokémon" className="logo" /> {/* Establece estilos para el logo en NavBar.css */}
+      <div className="container"> 
+        <Link className="navbar-brand" to="/"> 
+          <img src={logo} alt="Logo Pokémon" className="logo" /> 
         </Link>
-        {/* Si tienes más elementos en tu NavBar, colócalos aquí */}
       </div>
     
   );

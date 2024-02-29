@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import PokemonCard from './CardPokemone'; // Asegúrate de tener este componente para mostrar la info
-import '../styles/Home.css';
-import '../styles/Modal.css';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import PokemonCard from "./CardPokemone"; 
+import "../styles/Home.css";
+import "../styles/Modal.css";
 
 interface Pokemon {
   id: number;
   name: string;
   image: string;
-  height: number; // Altura del Pokémon
-  weight: number; // Peso del Pokémon
+  height: number; 
+  weight: number; 
   types: Array<{ type: { name: string } }>;
   abilities: Array<{ ability: { name: string } }>;
-  moves: Array<{ move: { name: string } }>; // Movimientos del Pokémon
+  moves: Array<{ move: { name: string } }>; 
 }
-
 
 interface PokemonCardProps {
   id: number;
@@ -22,69 +21,106 @@ interface PokemonCardProps {
   image: string;
   types: Array<{ type: { name: string } }>;
   abilities: Array<{ ability: { name: string } }>;
-  onClick: () => void; // Agrega la propiedad onClick a la interfaz
+  onClick: () => void;
 }
 
 const generations = [
-  { gen: 'Primera', offset: 0, limit: 151 },
-  { gen: 'Segunda', offset: 151, limit: 100 },
-  { gen: 'Tercera', offset: 251, limit: 135 },
-  { gen: 'Cuarta', offset: 386, limit: 107 },
-  { gen: 'Quinta', offset: 493, limit: 156 },
-  // Agrega más generaciones si es necesario
+  { gen: "Primera", offset: 0, limit: 151 },
+  { gen: "Segunda", offset: 151, limit: 100 },
+  { gen: "Tercera", offset: 251, limit: 135 },
+  { gen: "Cuarta", offset: 386, limit: 107 },
+  { gen: "Quinta", offset: 493, limit: 156 },
 ];
 
 const Home: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-  const [selectedGeneration, setSelectedGeneration] = useState<string>('Primera');
-  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null); // Nuevo estado para el Pokémon seleccionado
+  const [selectedGeneration, setSelectedGeneration] =
+    useState<string>("Primera");
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
+  const [showMoves, setShowMoves] = useState<boolean>(false); // Estado para mostrar/ocultar movimientos
 
- // ... resto del código ...
+  useEffect(() => {
+    const generation = generations.find(
+      (gen) => gen.gen === selectedGeneration
+    );
+    if (!generation) return;
 
-useEffect(() => {
-  const generation = generations.find(gen => gen.gen === selectedGeneration);
-  if (!generation) return;
-
-  axios.get(`https://pokeapi.co/api/v2/pokemon?offset=${generation.offset}&limit=${generation.limit}`)
-    .then(response => {
-      const fetches = response.data.results.map((pokemon: { name: string }) => {
-        return axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
-          .then(pokemonResponse => {
-            // Asumiendo que la respuesta tiene todos los campos necesarios
-            const { id, name, height, weight, types, abilities, moves, sprites } = pokemonResponse.data;
-            const image = sprites.front_default || `https://img.pokemondb.net/sprites/omega-ruby-alpha-sapphire/dex/normal/${name}.png`;
-            return { id, name, image, height, weight, types, abilities, moves };
-          });
+    axios
+      .get(
+        `https://pokeapi.co/api/v2/pokemon?offset=${generation.offset}&limit=${generation.limit}`
+      )
+      .then((response) => {
+        const fetches = response.data.results.map(
+          (pokemon: { name: string }) => {
+            return axios
+              .get(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
+              .then((pokemonResponse) => {
+                const {
+                  id,
+                  name,
+                  height,
+                  weight,
+                  types,
+                  abilities,
+                  moves,
+                  sprites,
+                } = pokemonResponse.data;
+                const image =
+                  sprites.front_default ||
+                  `https://img.pokemondb.net/sprites/omega-ruby-alpha-sapphire/dex/normal/${name}.png`;
+                return {
+                  id,
+                  name,
+                  image,
+                  height,
+                  weight,
+                  types,
+                  abilities,
+                  moves,
+                };
+              });
+          }
+        );
+        return Promise.all(fetches);
+      })
+      .then((pokemonData) => {
+        setPokemons(pokemonData);
+      })
+      .catch((error) => {
+        console.error("Error fetching data: ", error);
       });
-      return Promise.all(fetches);
-    })
-    .then(pokemonData => {
-      setPokemons(pokemonData);
-    })
-    .catch(error => {
-      console.error("Error fetching data: ", error);
-    });
-}, [selectedGeneration]);
+  }, [selectedGeneration]);
 
-// ... resto del código ...
-
-
-  // Función para abrir el modal y establecer el Pokémon seleccionado
   const handlePokemonClick = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
+    setShowMoves(false); 
   };
 
   const handleCloseModal = () => {
     setSelectedPokemon(null);
+    setShowMoves(false); 
+  };
+
+  
+  const handleToggleMoves = () => {
+    setShowMoves(!showMoves);
   };
 
   return (
     <div className="pokemon-container">
       <div>
-        <label htmlFor="generation-select" className="label-generacion">Selecciona una generación:</label>
-        <select id="generation-select" value={selectedGeneration} onChange={(e) => setSelectedGeneration(e.target.value)}>
-          {generations.map(gen => (
-            <option key={gen.gen} value={gen.gen}>{gen.gen}</option>
+        <label htmlFor="generation-select" className="label-generacion">
+          Generación:
+        </label>
+        <select
+          id="generation-select"
+          value={selectedGeneration}
+          onChange={(e) => setSelectedGeneration(e.target.value)}
+        >
+          {generations.map((gen) => (
+            <option key={gen.gen} value={gen.gen}>
+              {gen.gen}
+            </option>
           ))}
         </select>
       </div>
@@ -96,32 +132,51 @@ useEffect(() => {
           image={pokemon.image}
           types={pokemon.types}
           abilities={pokemon.abilities}
-          onClick={() => handlePokemonClick(pokemon)} // Agrega el evento onClick para abrir el modal al hacer clic en el Pokémon
+          onClick={() => handlePokemonClick(pokemon)}
         />
       ))}
-      {/* Modal */}
+      {}
       {selectedPokemon && (
-  <div className="modal">
-    <div className="modal-content">
-      <span className="close" onClick={handleCloseModal}>&times;</span>
-      <h2>{selectedPokemon.name}</h2>
-      <img src={selectedPokemon.image} alt={selectedPokemon.name} />
-      <p>Número: {selectedPokemon.id}</p>
-      <p>Altura: {selectedPokemon.height}</p>
-      <p>Peso: {selectedPokemon.weight}</p>
-      <p>Tipos: {selectedPokemon.types.map(type => type.type.name).join(', ')}</p>
-      <p>Habilidades: {selectedPokemon.abilities.map(ability => ability.ability.name).join(', ')}</p>
-      <div>
-        <h3>Movimientos:</h3>
-        <ul>
-          {selectedPokemon.moves.map((move, index) => (
-            <li key={index}>{move.move.name}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={handleCloseModal}>
+              &times;
+            </span>
+            <h3>Nombre:</h3>
+            <h2>{selectedPokemon.name}</h2>
+            <img src={selectedPokemon.image} alt={selectedPokemon.name} />
+            <p>Número: {selectedPokemon.id}</p>
+            <p>Altura: {selectedPokemon.height}</p>
+            <p>Peso: {selectedPokemon.weight}</p>
+            <p>
+              Tipos:{" "}
+              {selectedPokemon.types.map((type) => type.type.name).join(", ")}
+            </p>
+            <p>
+              Habilidades:{" "}
+              {selectedPokemon.abilities
+                .map((ability) => ability.ability.name)
+                .join(", ")}
+            </p>
+            <div>
+              <h3>Movimientos:</h3>
+              <ul>
+                <button onClick={handleToggleMoves}>
+                  {showMoves ? "Ocultar Movimientos" : "Mostrar Movimientos"}
+                </button>
+
+                {showMoves && (
+                  <ul>
+                    {selectedPokemon.moves.map((move, index) => (
+                      <li key={index}>{move.move.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

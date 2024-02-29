@@ -4,21 +4,21 @@ body {
   background-color: #ffffff;
   color: white;
 }
-/* NavBar.css */
+
 
 .logo {
-  width: 400px; /* Ajusta al tamaño que prefieras */
-  height: auto; /* Mantiene la proporción del logo */
+  width: 400px; 
+  height: auto; 
 }
 
 
-/* Asegúrate de que el contenedor del logo esté centrado */
+
 .navbar-brand.mx-auto {
-  display: flex; /* Usa flexbox para centrar el contenido */
-  justify-content: center; /* Centra horizontalmente */
+  display: flex; 
+  justify-content: center;
 }
 
-/* Ajusta el tamaño del contenedor del logo si es necesario */
+
 .container {
-  max-width: 100%; /* O cualquier otro tamaño que prefieras */
+  max-width: 100%; 
 }
